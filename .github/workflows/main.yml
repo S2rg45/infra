@@ -31,7 +31,7 @@ jobs:
         run: |
 
           changed_files="${{ toJson(github.event.client_payload.changed_files) }}"
-          for file in $changed_files_array; do
+          for file in $changed_files; do
             echo "Procesando archivo: $file"
             if [ -f $file ]; then
               cat $file
