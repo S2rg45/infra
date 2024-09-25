@@ -31,7 +31,7 @@ jobs:
         id: create-file
         run: |
 
-          changed_files=$(echo "${{ toJson(github.event.client_payload.changed_files) }}" | jq -c '.')
+          changed_files=$(echo "${{ toJson(github.event.client_payload.changed_files) }}" )
           echo "changed_files=$changed_files" >> $GITHUB_OUTPUT
 
       - name: Listar archivos en el directorio
