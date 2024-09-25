@@ -33,10 +33,6 @@ jobs:
           changed_files="${{ toJson(github.event.client_payload.changed_files) }}"
           for file in $changed_files; do
             echo "Procesando archivo: $file"
-            if [ -f $file ]; then
-              cat $file
-            else
-              echo "El archivo $file no se encuentra en el repositorio."
-            fi
+            cat $file
           done
 
