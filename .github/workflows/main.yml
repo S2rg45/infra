@@ -19,10 +19,16 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Instalar jq
+        run: sudo apt-get install -y jq
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Print received client_payload
         run: |
           echo "Archivos recibidos: ${{ toJson(github.event.client_payload.changed_files) }}"
+      
+      - name: Listar archivos en el directorio
+        run: ls -la
 
       - name: Checkout code
         uses: actions/checkout@v4
