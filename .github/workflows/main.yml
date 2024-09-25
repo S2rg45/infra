@@ -29,7 +29,11 @@ jobs:
 
       - name: Process each changed file
         run: |
-          for file in "${{ github.event.client_payload.changed_files[@] }}"; do
+
+          changed_files="${{ toJson(github.event.client_payload.changed_files) }}"
+          changed_files_array=($(echo "$changed_files" | jq -r '.[]'))
+
+          for file in "${changed_files_array[@]}"; do
             echo "Procesando archivo: $file"
             if [ -f $file ]; then
               cat $file
