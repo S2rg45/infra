@@ -30,9 +30,14 @@ jobs:
       - name: Process each changed file
         run: |
 
-          changed_files="${{ toJson(github.event.client_payload.changed_files) }}"
+          changed_files=$(echo "${{ toJson(github.event.client_payload.changed_files) }}" | jq -r '.[]')
           for file in $changed_files; do
             echo "Procesando archivo: $file"
-            cat $file
+            # Usa comillas dobles para manejar nombres de archivo con espacios
+            if [ -f "$file" ]; then
+              cat "$file"
+            else
+              echo "El archivo $file no se encuentra en el repositorio."
+            fi
           done
 
