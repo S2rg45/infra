@@ -31,6 +31,10 @@ jobs:
         run: |
           for file in ${{ github.event.client_payload.changed_files }}; do
             echo "Procesando archivo: $file"
-            cat $file || echo "$file no encontrado en el repo"
+            if [ -f $file ]; then
+              cat $file
+            else
+              echo "El archivo $file no se encuentra en el repositorio."
+            fi
           done
 
