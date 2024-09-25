@@ -19,8 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Instalar jq
-        run: sudo apt-get install -y jq
+      - name: Checkout code with full history
+        uses: actions/checkout@v2
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Print received client_payload
@@ -36,7 +36,7 @@ jobs:
       - name: Process each changed file
         run: |
 
-          changed_files=$(echo "${{ toJson(github.event.client_payload.changed_files) }}" | jq -r '. | @sh' | tr -d "'")
+          changed_files=$(echo "${{ toJson(github.event.client_payload.changed_files) }}" | jq -r '.[]')
           for file in $changed_files; do
             echo "Procesando archivo: $file"
             # Usa comillas dobles para manejar nombres de archivo con espacios
