@@ -22,6 +22,12 @@ jobs:
       - name: Checkout code with full history
         uses: actions/checkout@v4
 
+      - name: Extract folder
+        run: |
+          mkdir -p extracted-folder
+          tar -xvzf files-folder.tar.gz -C extracted-folder
+
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Print received client_payload
         run: |
