@@ -5,16 +5,19 @@ name: create-infra-glue
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
-  
   repository_dispatch:
     types: [trigger-code]
   # Allows you to run this workflow manually from the Actions tab
   #workflow_dispatch:
 
+env:
+  TOKEN_GITHUB: ${{secrets.TOKEN_GITHUB}} 
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
   build:
+    environment: prod
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -22,37 +25,7 @@ jobs:
       - name: Checkout code with full history
         uses: actions/checkout@v4
 
-      - name: Extract folder
+      - name: Enviar estado de finalización a Repo A
         run: |
-          mkdir -p extracted-folder
-          tar -xvzf files-folder.tar.gz -C extracted-folder
-
-
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Print received client_payload
-        run: |
-          echo "Archivos recibidos: ${{ toJson(github.event.client_payload.changed_files) }}"
-
-      - name: Process each changed file
-        id: create-file
-        run: |
-
-          changed_files=$(echo "${{ toJson(github.event.client_payload.changed_files) }}" )
-          echo "changed_files=$changed_files" >> $GITHUB_OUTPUT
-
-      - name: Listar archivos en el directorio
-        run: ls -la
-
-      - name: Process each changed file
-        run: |
-
-          for file in ${{ steps.create-file.outputs.changed_files }}; do
-            echo "Procesando archivo: $file"
-            # Usa comillas dobles para manejar nombres de archivo con espacios
-            if [ -f "$file" ]; then
-              cat "$file"
-            else
-              echo "El archivo $file no se encuentra en el repositorio."
-            fi
-          done
+          echo "Se ejecuta el repo B ok"
 
