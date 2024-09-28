@@ -29,3 +29,20 @@ jobs:
         run: |
           echo "Se ejecuta el repo B ok"
 
+      - name: Enviar estado de finalización a Repo A
+        run: |
+          echo "Se ejecuta el repo B ok"
+
+      - name: Enviar estado de finalización a Repo A
+        run: |
+          echo "Se ejecuta el repo B ok"
+
+      - name: Enviar estado de finalización a Repo A
+        run: |
+          count=0
+          for output in $(seq 1 20); do
+            echo "iteracion $i: count $count"
+            count=$((count + 1))
+          done
+          
+
