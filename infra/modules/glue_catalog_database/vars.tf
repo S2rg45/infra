@@ -1,4 +1,5 @@
-variable "catalog_database_name" {
+variable "database_name" {
   description = "Name of the catalog database"
-  type        = string    
+  type        = list(map(string))
+  default = []
 }

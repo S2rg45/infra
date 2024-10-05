@@ -1,48 +1,179 @@
-# This is a basic workflow to help you get started with Actions
+#This is a basic workflow to help you get started with Actions
 
 name: create-infra-glue
 
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
-  repository_dispatch:
-    types: [trigger-code]
+  # repository_dispatch:
+  #   types: [trigger-code]
+  push:
+    branches:
+      - dev
+      - main
   # Allows you to run this workflow manually from the Actions tab
   #workflow_dispatch:
+    paths:
+      - 'infra/**'
+      - 'get-variables-infra/**'
 
 env:
+  TF_LOG: INFO
   TOKEN_GITHUB: ${{secrets.TOKEN_GITHUB}} 
+  REGION      : ${{ vars.REGION }}
+  BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+  ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+  DYNAMODB_TABLE: ${{ vars.DYNAMODB_TABLE }}
+
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
   build:
     environment: prod
+    name: Terrafom Plan
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    outputs:
+      approved: ${{ steps.approval.outputs.approved }}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.10'
+
+      - name: Install Python requests
+        run: |
+          pip install boto3
+
+      - name: get-variables-infra
+        id: get-variable-infra
+        run: | 
+          cd get-vairables-infra
+          python get-variables-infra.py
+
+
+      - name: move-file-variables-infra
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        run: |
+          cd get-variables-infra
+          mv config-infra.tfvars ../infra/
+
+      #steps:
       - name: Checkout code with full history
         uses: actions/checkout@v4
 
-      - name: Enviar estado de finalización a Repo A
-        run: |
-          echo "Se ejecuta el repo B ok"
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: GitHub-OIDC-TERRAFORM
 
-      - name: Enviar estado de finalización a Repo A
+      - name: Determine .tfvars file and assign environment
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: tfvars
         run: |
-          echo "Se ejecuta el repo B ok"
+          cd infra/var-environment
+          echo -e "$(cat ${{env.ENVIRONMENT}}.tfvars)\n" >> ../config-infra.tfvars
 
-      - name: Enviar estado de finalización a Repo A
+      
+      - name: Determinate var backend file
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: var-backend
         run: |
-          echo "Se ejecuta el repo B ok"
+          cat <<EOF >  "generated_backend_${{env.ENVIRONMENT}}.tfvars"
+          bucket         = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}-tfstate"
+          key            = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}.tfstate"
+          region         = "us-east-2"
+          dynamodb_table = "${{env.DYNAMODB_TABLE}}-${{env.ENVIRONMENT}}-tflock"
+          EOF
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.2.5
 
-      - name: Enviar estado de finalización a Repo A
+      - name: Terraform Init
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: init
         run: |
-          count=0
-          for output in $(seq 1 800000); do
-            echo "iteracion $i: count $count"
-            count=$((count + 1))
-          done
-          
+          if [[ "${GITHUB_REF##*/}" == "dev" ]]; then
+            terraform init -backend-config=var-environment/generated_backend_${{env.ENVIRONMENT}}.tfvars
+          elif [[ "${GITHUB_REF##*/}" == "qa" ]]; then
+            terraform init -backend-config=var-environment/generated_backend_${{env.ENVIRONMENT}}.tfvars
+          else
+            terraform init -backend-config=var-environment/generated_backend_${{env.ENVIRONMENT}}.tfvars
+          fi
+        working-directory: infra
+
+      - name: Terraform Validate
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: validate
+        run: terraform validate -no-color
+        working-directory: infra
+  
+      - name: Terraform Plan
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: plan
+        run: terraform plan -out=tfplan -no-color
+        working-directory: infra
+        continue-on-error: true
+      
+      - name: Upload tfplan
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ./infra/tfplan
+    
+      - name: Approval-Action
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: approval
+        uses: ekeel/approval-action@v1.0.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          approvers: 'pulidovpe, S2rg34-n5b'
+          minimumApprovals: '1'
+          issueLabels: 'ManualApproval,ApprovalAction'
+          excludeInitiator: 'false'
+          approveWords: 'approve, approved, aprobado'
+          rejectWords: 'deny, denied, reject, rejected, rechazado'
+          waitInterval: '1'
+          waitTimeout: '3'
+          issueTitle: 'Deployment request approval'
+          issueBody: |
+            ###Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            ###Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+
+            <details><summary>Validation Output</summary>
+
+            \`\`\`
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            ###Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+
+            
 
