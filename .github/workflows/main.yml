@@ -5,12 +5,9 @@ name: create-infra-glue
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
-  # repository_dispatch:
-  #   types: [trigger-code]
-  push:
-    branches:
-      - dev
-      - main
+  repository_dispatch:
+    types: [trigger-code]
+
     paths:
       - 'infra/**'
       - 'get-variables-infra/**'
@@ -54,10 +51,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11.10'
-      
-      - name: Validate folders
-        run: |
-          ls -la
 
       - name: Install Python requests
         run: |
@@ -67,7 +60,7 @@ jobs:
         id: get-variable-infra
         run: | 
           ls -la
-          cd get-vairables-infra
+          cd get-variables-infra
           python get-variables-infra.py
 
 
