@@ -11,7 +11,10 @@ provider "aws" {
       pais        = var.pais
     }
   }
+}
 
+terraform {
+   backend "local" {}
 }
 
 

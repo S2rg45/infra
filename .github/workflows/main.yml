@@ -77,10 +77,6 @@ jobs:
           cd get-variables-infra
           mv config-infra.tfvars ../infra/
 
-      #steps:
-      - name: Checkout code with full history
-        uses: actions/checkout@v4
-
       - name: Configure AWS credentials
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         uses: aws-actions/configure-aws-credentials@v4
@@ -100,6 +96,8 @@ jobs:
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: tfvars-config
         run: |
+          cd infra
+          cat config-infra.tfvars
           echo "TFVARS_FILE=config-infra.tfvars" >> $GITHUB_ENV
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
         working-directory: infra
@@ -114,7 +112,10 @@ jobs:
           region         = "${{env.AWS_REGION}}"
           dynamodb_table = "${{env.DYNAMODB_TABLE}}-${{env.ENVIRONMENT}}-tflock"
           EOF
+          ls -la
+          cat generated_backend_${{env.ENVIRONMENT}}.tfvars
         working-directory: infra
+      
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
