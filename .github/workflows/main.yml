@@ -3,39 +3,39 @@
 name: create-infra-glue
 
 # Controls when the workflow will run
-on:
+'on':
   # Triggers the workflow on push or pull request events but only for the "main" branch
   repository_dispatch:
-    types: [trigger-code]
+    types:
+      - trigger-code
 
     paths:
-      - 'infra/**'
-      - 'get-variables-infra/**'
+      - infra/**
+      - get-variables-infra/**
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+    null
 permissions:
-      id-token: write # This is required for aws oidc connection
-      contents: read # This is required for actions/checkout
-      pull-requests: write # This is required for gh bot to comment PR
-      issues: write
+  id-token: write # This is required for aws oidc connection
+  contents: read # This is required for actions/checkout
+  pull-requests: write # This is required for gh bot to comment PR
+  issues: write
 
 env:
-  TF_LOG                : INFO
-  TOKEN_GITHUB          : ${{secrets.TOKEN_GITHUB}} 
-  AWS_REGION            : ${{ vars.AWS_REGION }}
-  BUCKET_NAME           : ${{ vars.BUCKET_NAME }}
-  ENVIRONMENT           : ${{ vars.ENVIRONMENT }}
-  DYNAMODB_TABLE        : ${{ vars.DYNAMODB_TABLE }}
-  DYNAMO_TABLE_PROCESS  : ${{ vars.DYNAMO_TABLE_PROCESS }}
-  BUCKET_NAME_PROCESS   : ${{ vars.BUCKET_NAME_PROCESS }}
-
-
+  TF_LOG: INFO
+  TOKEN_GITHUB: ${{secrets.TOKEN_GITHUB}}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+  ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+  DYNAMODB_TABLE: ${{ vars.DYNAMODB_TABLE }}
+  DYNAMO_TABLE_PROCESS: ${{ vars.DYNAMO_TABLE_PROCESS }}
+  BUCKET_NAME_PROCESS: ${{ vars.BUCKET_NAME_PROCESS }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  Terraform-Plan:
     environment: prod
     name: Terrafom Plan
     # The type of runner that the job will run on
@@ -50,19 +50,19 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11.10'
+          python-version: 3.11.10
 
       - name: Install Python requests
         run: |
           pip install boto3
+          pip install pytz
 
       - name: get-variables-infra
         id: get-variable-infra
-        run: | 
+        run: |
           ls -la
           cd get-variables-infra
           python get-variables-infra.py
-
 
       - name: move-file-variables-infra
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
@@ -75,6 +75,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE }}
@@ -88,7 +89,14 @@ jobs:
           cd infra/var-environment
           echo -e "$(cat ${{env.ENVIRONMENT}}.tfvars)\n" >> ../config-infra.tfvars
 
-      
+      - name: Determine .tfvars file and assign environment
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: tfvars
+        run: |
+          echo "TFVARS_FILE=config-infra.tfvars" >> $GITHUB_ENV
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+        working-directory: infra
+
       - name: Determinate var backend file
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: var-backend
@@ -100,20 +108,41 @@ jobs:
           dynamodb_table = "${{env.DYNAMODB_TABLE}}-${{env.ENVIRONMENT}}-tflock"
           EOF
         working-directory: infra
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.2.5
 
+      - name: Terraform Init
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: init
+        run: terraform init
+          -backend-config=generated_backend_${{env.ENVIRONMENT}}.tfvars
+        working-directory: infra
 
       - name: Terraform Validate
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: validate
         run: terraform validate -no-color
         working-directory: infra
-      
+
+      - name: Terraform Plan
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: plan
+        run: terraform plan -var-file=${{ env.TFVARS_FILE }} -out=tfplan -no-color
+        working-directory: infra
+        continue-on-error: true
+
+      - name: Upload tfplan
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ./infra/tfplan
+
       - name: Download tfplan
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         uses: actions/download-artifact@v4
         with:
           name: tfplan
@@ -123,32 +152,34 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.2.5
-      
+
       - name: Terraform Init
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: init
-        run: terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.tfvars
+        run: terraform init
+          -backend-config=generated_backend_${{env.ENVIRONMENT}}.tfvars
         working-directory: infra
 
       - name: Terraform Apply
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         run: |
           ls -l
           terraform apply -auto-approve tfplan
         working-directory: infra
-  
       # - name: Terraform Plan
       #   if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
       #   id: plan
       #   run: terraform plan -out=tfplan -no-color
       #   working-directory: infra
       #   continue-on-error: true
-      
+
       # - name: Upload tfplan
       #   if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
       #   uses: actions/upload-artifact@v4
       #   with:
       #     name: tfplan
       #     path: ./infra/tfplan
-    
+
       # - name: Approval-Action
       #   if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
       #   id: approval
@@ -194,7 +225,3 @@ jobs:
       #         repo: context.repo.repo,
       #         body: output
       #       })
-
-
-            
-
