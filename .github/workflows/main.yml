@@ -62,6 +62,7 @@ jobs:
         run: |
           ls -la
           cd get-variables-infra
+          cat get-variables-infra.py
           python get-variables-infra.py
 
       - name: move-file-variables-infra
