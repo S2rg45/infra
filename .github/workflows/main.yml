@@ -18,12 +18,15 @@ on:
       - 'get-variables-infra/**'
 
 env:
-  TF_LOG: INFO
-  TOKEN_GITHUB: ${{secrets.TOKEN_GITHUB}} 
-  REGION      : ${{ vars.REGION }}
-  BUCKET_NAME: ${{ vars.BUCKET_NAME }}
-  ENVIRONMENT: ${{ vars.ENVIRONMENT }}
-  DYNAMODB_TABLE: ${{ vars.DYNAMODB_TABLE }}
+  TF_LOG                : INFO
+  TOKEN_GITHUB          : ${{secrets.TOKEN_GITHUB}} 
+  REGION                : ${{ vars.AWS_REGION }}
+  BUCKET_NAME           : ${{ vars.BUCKET_NAME }}
+  ENVIRONMENT           : ${{ vars.ENVIRONMENT }}
+  DYNAMODB_TABLE        : ${{ vars.DYNAMODB_TABLE }}
+  DYNAMO_TABLE_PROCESS  : ${{ vars.DYNAMO_TABLE_PROCESS }}
+  BUCKET_NAME_PROCESS   : ${{ vars.BUCKET_NAME_PROCESS }}
+
 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
