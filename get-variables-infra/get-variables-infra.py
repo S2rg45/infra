@@ -102,8 +102,7 @@ if __name__ == "__main__":
     # Nombre de la Tabla en DynamoDB
     dynamodb_table = os.getenv("DYNAMO_TABLE_PROCESS") #'state-files-process'
     region_name = os.getenv("AWS_REGION") #'us-east-2'
-    download_files = DownloadFiles(dynamodb_table, 
-                                   region_name, 
+    download_files = DownloadFiles(dynamodb_table,  
                                    bucket_name)    
     
     process_data=download_files.get_records_dynamo()
