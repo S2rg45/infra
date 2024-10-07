@@ -12,8 +12,8 @@ class DownloadFiles():
         self.region_name = region_name
         self.bucket_name = bucket_name
         self.current_time = datetime.datetime.now()
-        self.glue_services = {'glue': [],'tables': [],'databases': [],'crawlers': []}
-        self.services_created = ["glue","tables","databases","crawlers"]
+        self.glue_services = {'glue': [],'cloudwatch':[],'tables': [],'databases': [],'crawlers': []}
+        self.services_created = ["glue","cloudwatch","tables","databases","crawlers"]
         self.path_s3_ = []
 
         self.aws_key = os.getenv("AWS_ACCESS_KEY_ID")
@@ -98,9 +98,11 @@ if __name__ == "__main__":
     logging.info("--------------------------------")
     logging.info("Proceso iniciado")
     logging.info("--------------------------------")
-    region_name = "us-east-2"
-    dynamodb_table = 'state-files-process'
-    bucket_name = "process-etl-glue-prod"
+    # Nombre del bucket de S3
+    bucket_name = os.getenv("BUCKET_NAME_PROCESS") #'process-etl-glue-prod'
+    # Nombre de la Tabla en DynamoDB
+    dynamodb_table = os.getenv("DYNAMO_TABLE_PROCESS") #'state-files-process'
+    region_name = os.getenv("AWS_REGION") #'us-east-2'
     download_files = DownloadFiles(dynamo_table=dynamodb_table, 
                                    region_name=region_name, 
                                    bucket_name=bucket_name)    
