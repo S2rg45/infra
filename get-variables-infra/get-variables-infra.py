@@ -3,15 +3,17 @@ import boto3
 import datetime
 import logging
 from boto3.dynamodb.conditions import Key, Attr
+import pytz
 
 
 
 class DownloadFiles():
-    def __init__(self, dynamo_table, region_name, bucket_name ):
+    def __init__(self, dynamo_table, region_name, bucket_name, timezone ):
         self.dynamo_table = dynamo_table
         self.region_name = region_name
         self.bucket_name = bucket_name
-        self.current_time = datetime.datetime.now()
+        self.timezone = timezone
+        self.current_time = datetime.datetime.now(self.timezone)
         self.glue_services = {'glue': [],'cloudwatch':[],'tables': [],'databases': [],'crawlers': []}
         self.services_created = ["glue","cloudwatch","tables","databases","crawlers"]
         self.path_s3_ = []
@@ -24,20 +26,25 @@ class DownloadFiles():
 
     
     def get_records_dynamo(self):
-        time_five_ago = self.current_time - datetime.timedelta(minutes=5) 
+        time_five_ago = self.current_time - datetime.timedelta(minutes=2) 
+        print(time_five_ago)
+        transform_date_five = time_five_ago.strftime('%Y-%m-%d %H:%M:%S')
+        transform_current_time = self.current_time.strftime('%Y-%m-%d %H:%M:%S')
         try:
             response = self.table.scan(
                 FilterExpression=Attr('process-files').begins_with('variable-')
             )
             variables=response.get('Items', [])
             for item in variables:
-                if 'UpdateDate' in variables:
-                    date_create = datetime.datetime.strptime(item['UpdateDate'], '%Y-%m-%d %H:%M:%S')
-                    if time_five_ago < date_create < self.current_time:
+                if "UpdateDate" in item:
+                    # print('UpdateDate',item['UpdateDate'])
+                    # print('transform_date_five',transform_date_five)
+                    # print('transform_current_time',transform_current_time)
+                    if transform_date_five < item['UpdateDate'] < transform_current_time:
                         self.path_s3_.append(item['S3_key'])
                 else:
-                    date_create = datetime.datetime.strptime(item['CreationDate'], '%Y-%m-%d %H:%M:%S')
-                    if time_five_ago < date_create < self.current_time:
+                    # print('CreationDate',item['CreationDate'])
+                    if transform_date_five < item['CreationDate'] < transform_current_time:
                         self.path_s3_.append(item['S3_key'])
             return self.path_s3_
         except Exception as e:
@@ -108,9 +115,11 @@ if __name__ == "__main__":
     # Nombre de la Tabla en DynamoDB
     dynamodb_table = os.getenv("DYNAMO_TABLE_PROCESS") #'state-files-process'
     region_name = os.getenv("AWS_REGION") #'us-east-2'
+    guatemala_timezone = pytz.timezone('America/Guatemala')
     download_files = DownloadFiles(dynamodb_table, 
                                    region_name, 
-                                   bucket_name)    
+                                   bucket_name, 
+                                   guatemala_timezone)    
     
     process_data=download_files.get_records_dynamo()
     if process_data:
