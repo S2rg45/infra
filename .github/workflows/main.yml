@@ -96,7 +96,7 @@ jobs:
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: tfvars-config
         run: |
-          cd infra
+          ls -la
           cat config-infra.tfvars
           echo "TFVARS_FILE=config-infra.tfvars" >> $GITHUB_ENV
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
