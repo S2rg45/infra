@@ -34,18 +34,17 @@ class DownloadFiles():
             response = self.table.scan(
                 FilterExpression=Attr('process-files').begins_with('variable-')
             )
-            print("response",response)
             variables=response.get('Items', [])
-            print("VARIABLES",variables)
+            # print("VARIABLES",variables)
             for item in variables:
                 if "UpdateDate" in item:
-                    print('UpdateDate',item['UpdateDate'])
-                    print('transform_date_five',transform_date_five)
-                    print('transform_current_time',transform_current_time)
+                    # print('UpdateDate',item['UpdateDate'])
+                    # print('transform_date_five',transform_date_five)
+                    # print('transform_current_time',transform_current_time)
                     if transform_date_five < item['UpdateDate'] < transform_current_time:
                         self.path_s3_.append(item['S3_key'])
                 else:
-                    print('CreationDate',item['CreationDate'])
+                    # print('CreationDate',item['CreationDate'])
                     if transform_date_five < item['CreationDate'] < transform_current_time:
                         self.path_s3_.append(item['S3_key'])
             return self.path_s3_
