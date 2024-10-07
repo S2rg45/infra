@@ -7,9 +7,8 @@ from boto3.dynamodb.conditions import Key, Attr
 
 
 class DownloadFiles():
-    def __init__(self, dynamo_table, region_name, bucket_name ):
+    def __init__(self, dynamo_table, bucket_name ):
         self.dynamo_table = dynamo_table
-        self.region_name = region_name
         self.bucket_name = bucket_name
         self.current_time = datetime.datetime.now()
         self.glue_services = {'glue': [],'cloudwatch':[],'tables': [],'databases': [],'crawlers': []}
@@ -18,7 +17,7 @@ class DownloadFiles():
 
         self.aws_key = os.getenv("AWS_ACCESS_KEY_ID")
         self.aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
-        self.dynamodb = boto3.resource('dynamodb', self.region_name)
+        self.dynamodb = boto3.resource('dynamodb', region_name)
         self.s3_session = boto3.client('s3')
         self.table = self.dynamodb.Table(self.dynamo_table)
 
