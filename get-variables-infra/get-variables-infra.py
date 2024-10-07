@@ -109,9 +109,9 @@ class DownloadFiles():
 
 
 if __name__ == "__main__":
-    logging.info("--------------------------------")
-    logging.info("Proceso iniciado")
-    logging.info("--------------------------------")
+    print("--------------------------------")
+    print("Proceso iniciado")
+    print("--------------------------------")
     # Nombre del bucket de S3
     bucket_name = 'process-etl-glue-prod'
     # Nombre de la Tabla en DynamoDB
@@ -131,6 +131,7 @@ if __name__ == "__main__":
     else:
         download_files.set_output("status", "empty")
         print("EMPTY")
+
 
     
    
