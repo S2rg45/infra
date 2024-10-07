@@ -50,7 +50,7 @@ class DownloadFiles():
                         self.path_s3_.append(item['S3_key'])
             return self.path_s3_
         except Exception as e:
-            logging.info(f"Error al obtener registros de DynamoDB: {str(e)}")
+            print(f"Error al obtener registros de DynamoDB: {str(e)}")
 
     
     def create_json_output(self ):
