@@ -34,6 +34,7 @@ class DownloadFiles():
             response = self.table.scan(
                 FilterExpression=Attr('process-files').begins_with('variable-')
             )
+            print("response",response)
             variables=response.get('Items', [])
             print("VARIABLES",variables)
             for item in variables:
