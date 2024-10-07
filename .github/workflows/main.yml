@@ -86,93 +86,104 @@ jobs:
           cat <<EOF >  "generated_backend_${{env.ENVIRONMENT}}.tfvars"
           bucket         = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}-tfstate"
           key            = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}.tfstate"
-          region         = "us-east-2"
+          region         = "${{env.AWS_REGION}}"
           dynamodb_table = "${{env.DYNAMODB_TABLE}}-${{env.ENVIRONMENT}}-tflock"
           EOF
+        working-directory: infra
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.2.5
 
-      - name: Terraform Init
-        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
-        id: init
-        run: |
-          if [[ "${GITHUB_REF##*/}" == "dev" ]]; then
-            terraform init -backend-config=var-environment/generated_backend_${{env.ENVIRONMENT}}.tfvars
-          elif [[ "${GITHUB_REF##*/}" == "qa" ]]; then
-            terraform init -backend-config=var-environment/generated_backend_${{env.ENVIRONMENT}}.tfvars
-          else
-            terraform init -backend-config=var-environment/generated_backend_${{env.ENVIRONMENT}}.tfvars
-          fi
-        working-directory: infra
 
       - name: Terraform Validate
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: validate
         run: terraform validate -no-color
         working-directory: infra
-  
-      - name: Terraform Plan
-        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
-        id: plan
-        run: terraform plan -out=tfplan -no-color
-        working-directory: infra
-        continue-on-error: true
       
-      - name: Upload tfplan
-        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
-        uses: actions/upload-artifact@v4
+      - name: Download tfplan
+        uses: actions/download-artifact@v4
         with:
           name: tfplan
-          path: ./infra/tfplan
-    
-      - name: Approval-Action
-        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
-        id: approval
-        uses: ekeel/approval-action@v1.0.3
+          path: ./infra
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
-          token: ${{ secrets.GH_PAT }}
-          approvers: 'pulidovpe, S2rg34-n5b'
-          minimumApprovals: '1'
-          issueLabels: 'ManualApproval,ApprovalAction'
-          excludeInitiator: 'false'
-          approveWords: 'approve, approved, aprobado'
-          rejectWords: 'deny, denied, reject, rejected, rechazado'
-          waitInterval: '1'
-          waitTimeout: '3'
-          issueTitle: 'Deployment request approval'
-          issueBody: |
-            ###Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            ###Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+          terraform_version: 1.2.5
+      
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.tfvars
+        working-directory: infra
 
-            <details><summary>Validation Output</summary>
+      - name: Terraform Apply
+        run: |
+          ls -l
+          terraform apply -auto-approve tfplan
+        working-directory: infra
+  
+      # - name: Terraform Plan
+      #   if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+      #   id: plan
+      #   run: terraform plan -out=tfplan -no-color
+      #   working-directory: infra
+      #   continue-on-error: true
+      
+      # - name: Upload tfplan
+      #   if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: tfplan
+      #     path: ./infra/tfplan
+    
+      # - name: Approval-Action
+      #   if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+      #   id: approval
+      #   uses: ekeel/approval-action@v1.0.3
+      #   with:
+      #     token: ${{ secrets.GH_PAT }}
+      #     approvers: 'pulidovpe, S2rg34-n5b'
+      #     minimumApprovals: '1'
+      #     issueLabels: 'ManualApproval,ApprovalAction'
+      #     excludeInitiator: 'false'
+      #     approveWords: 'approve, approved, aprobado'
+      #     rejectWords: 'deny, denied, reject, rejected, rechazado'
+      #     waitInterval: '1'
+      #     waitTimeout: '3'
+      #     issueTitle: 'Deployment request approval'
+      #     issueBody: |
+      #       ###Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+      #       ###Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
 
-            \`\`\`
-            ${{ steps.validate.outputs.stdout }}
-            \`\`\`
+      #       <details><summary>Validation Output</summary>
 
-            </details>
+      #       \`\`\`
+      #       ${{ steps.validate.outputs.stdout }}
+      #       \`\`\`
 
-            ###Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+      #       </details>
 
-            <details><summary>Show Plan</summary>
+      #       ###Terraform Plan 📖\`${{ steps.plan.outcome }}\`
 
-            \`\`\`
-            ${{ steps.plan.outputs.stdout }}
-            \`\`\`
+      #       <details><summary>Show Plan</summary>
 
-            </details>
+      #       \`\`\`
+      #       ${{ steps.plan.outputs.stdout }}
+      #       \`\`\`
 
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+      #       </details>
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
+      #       *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: output
+      #       })
 
 
             

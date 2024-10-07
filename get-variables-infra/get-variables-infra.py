@@ -12,8 +12,8 @@ class DownloadFiles():
         self.region_name = region_name
         self.bucket_name = bucket_name
         self.current_time = datetime.datetime.now()
-        self.glue_services = {'jobs': [],'tables': [],'databases': [],'crawlers': []}
-        self.services_created = ["jobs","tables","databases","crawlers"]
+        self.glue_services = {'glue': [],'tables': [],'databases': [],'crawlers': []}
+        self.services_created = ["glue","tables","databases","crawlers"]
         self.path_s3_ = []
 
         self.aws_key = os.getenv("AWS_ACCESS_KEY_ID")
@@ -32,7 +32,7 @@ class DownloadFiles():
             variables=response.get('Items', [])
             for item in variables:
                 date_create = datetime.datetime.strptime(item['CreationDate'], '%Y-%m-%d %H:%M:%S')
-                if time_five_ago < date_create < self.current_time:
+                if time_five_ago > date_create < self.current_time:
                     self.path_s3_.append(item['S3_key'])
             return self.path_s3_
         except Exception as e:
@@ -49,34 +49,16 @@ class DownloadFiles():
             lines = env_content.splitlines()
             for line in lines:
                 line = line.strip()  # Limpiar espacios
-                if "#glue" in line and "job" in line:
-                    if current_config and current_glue_type:
-                        self.glue_services[current_glue_type].append(current_config)
-                    current_config = {}
-                    current_glue_type = "jobs"
-                
-                elif "#table" in line and "job" in line:
-                    if current_config and current_glue_type:
-                        self.glue_services[current_glue_type].append(current_config)
-                    current_config = {}
-                    current_glue_type = "tables"
-                
-                elif "#databe" in line and "job" in line:
-                    if current_config and current_glue_type:
-                        self.glue_services[current_glue_type].append(current_config)
-                    current_config = {}
-                    current_glue_type = "databases"
-                
-                elif "#crawler" in line:
-                    if current_config and current_glue_type:
-                        self.glue_services[current_glue_type].append(current_config)
-                    current_config = {}
-                    current_glue_type = "crawlers"
-
-                elif "=" in line:
-                    key, value = line.split('=', 1)  # Permitir '=' en los valores
-                    current_config[key.strip()] = value.strip()
-            
+                #validar linea a linea el servicio
+                for service in self.services_created:
+                    if f"#{service}" in line :
+                        if current_config and current_glue_type:
+                            self.glue_services[current_glue_type].append(current_config)
+                        current_config = {}
+                        current_glue_type = f"{service}"
+                    elif "=" in line:
+                        key, value = line.split('=', 1)  # Permitir '=' en los valores
+                        current_config[key.strip()] = value.strip()
             # Verificar antes de añadir al final de la iteración
             if current_config and current_glue_type:
                 self.glue_services[current_glue_type].append(current_config)
@@ -127,8 +109,10 @@ if __name__ == "__main__":
     if process_data:
         download_files.create_json_output()
         download_files.create_file_infra()
+        print("Process")
     else:
         download_files.set_output("status", "empty")
+        print("EMPTY")
 
     
    
