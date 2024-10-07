@@ -19,7 +19,7 @@ resource "aws_glue_job" "glue_job" {
   }
 
   default_arguments = {
-    "--job-bookmark-option"              = each.value.job-bookmark-option  //"job-bookmark-enable"
+    "--job-language"                     = each.value.job-language  //"job-bookmark-enable"
     "--enable-metrics"                   = each.value.enable-metrics  //"true"
     "--TempDir"                          = each.value.TempDir //"s3://your-temp-bucket/temp-dir/"
     "--enable-continuous-cloudwatch-log" = each.value.enable-cloud-watch-log  //"true"
