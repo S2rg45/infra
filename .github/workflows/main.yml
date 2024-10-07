@@ -23,7 +23,7 @@ permissions:
 env:
   TF_LOG                : INFO
   TOKEN_GITHUB          : ${{secrets.TOKEN_GITHUB}} 
-  REGION                : ${{ vars.AWS_REGION }}
+  AWS_REGION            : ${{ vars.AWS_REGION }}
   BUCKET_NAME           : ${{ vars.BUCKET_NAME }}
   ENVIRONMENT           : ${{ vars.ENVIRONMENT }}
   DYNAMODB_TABLE        : ${{ vars.DYNAMODB_TABLE }}
