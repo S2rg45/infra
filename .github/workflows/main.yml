@@ -91,7 +91,7 @@ jobs:
 
       - name: Determine .tfvars file and assign environment
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
-        id: tfvars
+        id: tfvars-config
         run: |
           echo "TFVARS_FILE=config-infra.tfvars" >> $GITHUB_ENV
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
