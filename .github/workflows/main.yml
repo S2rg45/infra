@@ -53,6 +53,7 @@ jobs:
       - name: get-variables-infra
         id: get-variable-infra
         run: | 
+          ls -la
           cd get-vairables-infra
           python get-variables-infra.py
 
