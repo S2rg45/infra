@@ -26,7 +26,7 @@ class DownloadFiles():
 
     
     def get_records_dynamo(self):
-        time_five_ago = self.current_time - datetime.timedelta(minutes=2) 
+        time_five_ago = self.current_time - datetime.timedelta(minutes=5) 
         print(time_five_ago)
         transform_date_five = time_five_ago.strftime('%Y-%m-%d %H:%M:%S')
         transform_current_time = self.current_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -111,10 +111,10 @@ if __name__ == "__main__":
     logging.info("Proceso iniciado")
     logging.info("--------------------------------")
     # Nombre del bucket de S3
-    bucket_name = os.getenv("BUCKET_NAME_PROCESS") #'process-etl-glue-prod'
+    bucket_name = 'process-etl-glue-prod'
     # Nombre de la Tabla en DynamoDB
-    dynamodb_table = os.getenv("DYNAMO_TABLE_PROCESS") #'state-files-process'
-    region_name = os.getenv("AWS_REGION") #'us-east-2'
+    dynamodb_table = 'state-files-process'
+    region_name = 'us-east-2'
     guatemala_timezone = pytz.timezone('America/Guatemala')
     download_files = DownloadFiles(dynamodb_table, 
                                    region_name, 
