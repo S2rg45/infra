@@ -33,11 +33,11 @@ class DownloadFiles():
             for item in variables:
                 if 'UpdateDate' in variables:
                     date_create = datetime.datetime.strptime(item['UpdateDate'], '%Y-%m-%d %H:%M:%S')
-                    if time_five_ago > date_create < self.current_time:
+                    if time_five_ago < date_create < self.current_time:
                         self.path_s3_.append(item['S3_key'])
                 else:
                     date_create = datetime.datetime.strptime(item['CreationDate'], '%Y-%m-%d %H:%M:%S')
-                    if time_five_ago > date_create < self.current_time:
+                    if time_five_ago < date_create < self.current_time:
                         self.path_s3_.append(item['S3_key'])
             return self.path_s3_
         except Exception as e:
