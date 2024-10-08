@@ -137,7 +137,7 @@ jobs:
 
       - name: Terraform Validate
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
-        id: validate
+        id: validate-infra
         run: terraform validate -no-color
         working-directory: infra
 
