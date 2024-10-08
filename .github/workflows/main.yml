@@ -100,7 +100,6 @@ jobs:
           cat config-infra.tfvars
           echo "TFVARS_FILE=config-infra.tfvars" >> $GITHUB_ENV
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          rm -rf config-infra.tfvars
         working-directory: infra
 
       - name: Determinate var backend file
