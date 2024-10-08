@@ -120,19 +120,13 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.2.5
-      
-      - name: Terraform Validate
-        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
-        id: validate
-        run: |
-          ls -la
-          terraform validate -no-color
-        working-directory: infra
 
       - name: Terraform Init
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: init
-        run: terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.hcl
+        run: |
+          ls -la 
+          terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.hcl
         working-directory: infra
 
       - name: Terraform Validate
