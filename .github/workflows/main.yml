@@ -106,14 +106,14 @@ jobs:
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: var-backend
         run: |
-          cat <<EOF >  "generated_backend_${{env.ENVIRONMENT}}.tfvars"
+          cat <<EOF >  "generated_backend_${{env.ENVIRONMENT}}.hcl"
           bucket         = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}-tfstate"
           key            = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}.tfstate"
           region         = "${{env.AWS_REGION}}"
           dynamodb_table = "${{env.DYNAMODB_TABLE}}-${{env.ENVIRONMENT}}-tflock"
           EOF
           ls -la
-          cat generated_backend_${{env.ENVIRONMENT}}.tfvars
+          cat generated_backend_${{env.ENVIRONMENT}}.hcl
         working-directory: infra
       
 
@@ -125,7 +125,7 @@ jobs:
       - name: Terraform Init
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: init
-        run: terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.tfvars
+        run: terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.hcl
         working-directory: infra
 
       - name: Terraform Validate
