@@ -126,7 +126,7 @@ jobs:
         id: init
         run: |
           ls -la 
-          terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.hcl
+          terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.tfbackend
         working-directory: infra
 
       - name: Terraform Validate
