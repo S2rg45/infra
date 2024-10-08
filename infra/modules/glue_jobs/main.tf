@@ -8,10 +8,10 @@ resource "aws_glue_job" "glue_job" {
   for_each = {for job in var.glue_glue : job.glue_job_name => job}
   name     = each.value.glue_job_name
   role_arn = each.value.role_arn
-  max_capacity = each.value.max_capacity // 14
   glue_version = each.value.glue_version
   worker_type = each.value.worker_type
-
+  number_of_workers = each.value.number_of_workers
+  timeout = each.value.timeout
 
   command {
     script_location = each.value.script_location
@@ -19,7 +19,11 @@ resource "aws_glue_job" "glue_job" {
   }
 
   default_arguments = {
-    "--job-language"                     = each.value.job-language  //"job-bookmark-enable"
+    "--job-bookmark-option"              = each.value.job-bookmark
+    "--job-language"                     = each.value.job-language 
+    "--extra-py-files"                   = each.value.extra-py
+    "--conf"                             = each.value.executor-spark 
+    "--conf"                             = each.value.driver-spark
     "--enable-metrics"                   = each.value.enable-metrics  //"true"
     "--TempDir"                          = each.value.TempDir //"s3://your-temp-bucket/temp-dir/"
     "--enable-continuous-cloudwatch-log" = each.value.enable-cloud-watch-log  //"true"
