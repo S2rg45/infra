@@ -14,8 +14,8 @@ class DownloadFiles():
         self.bucket_name = bucket_name
         self.timezone = timezone
         self.current_time = datetime.datetime.now(self.timezone)
-        self.glue_services = {'glue': [],'cloudwatch':[],'tables': [],'databases': [],'crawlers': []}
-        self.services_created = ["glue","cloudwatch","tables","databases","crawlers"]
+        self.glue_services = {'glue': [],'tables': [],'databases': [],'crawlers': []}
+        self.services_created = ["glue","tables","databases","crawlers"]
         self.path_s3_ = []
 
         self.aws_key = os.getenv("AWS_ACCESS_KEY_ID")
