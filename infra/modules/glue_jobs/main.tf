@@ -25,7 +25,7 @@ resource "aws_glue_job" "glue_job" {
     "--enable-continuous-cloudwatch-log" = each.value.enable-cloud-watch-log  //"true"
     "--enable-spark-ui"                  = each.value.enable-spark-ui // "true"
     "--spark-event-logs-path"            = each.value.spark-event-logs-path // "s3://your-logs-bucket/spark-logs/"
-    "--log-group-name"                   = aws_cloudwatch_log_group.glue_log_group.name
+    "--log-group-name"                   = each.value.glue_job_name
     "--log-stream-name-prefix"           = each.value.glue_job_name
   }
 
