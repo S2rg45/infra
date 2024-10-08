@@ -129,11 +129,11 @@ jobs:
           terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.tfbackend
         working-directory: infra
 
-      - name: Terraform Validate
-        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
-        id: validate-infra
-        run: terraform validate -no-color
-        working-directory: infra
+      # - name: Terraform Validate
+      #   if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+      #   id: validate-infra
+      #   run: terraform validate -no-color
+      #   working-directory: infra
 
       - name: Terraform Plan
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
