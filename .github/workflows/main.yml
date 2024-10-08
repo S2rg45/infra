@@ -100,20 +100,19 @@ jobs:
           cat config-infra.tfvars
           echo "TFVARS_FILE=config-infra.tfvars" >> $GITHUB_ENV
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+          rm -rf config-infra.tfvars
         working-directory: infra
 
       - name: Determinate var backend file
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: var-backend
         run: |
-          cat <<EOF >  "generated_backend_${{env.ENVIRONMENT}}.hcl"
+          cat <<EOF >  "generated_backend_${{env.ENVIRONMENT}}.tf"
           bucket         = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}-tfstate"
           key            = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}.tfstate"
           region         = "${{env.AWS_REGION}}"
           dynamodb_table = "${{env.DYNAMODB_TABLE}}-${{env.ENVIRONMENT}}-tflock"
           EOF
-          ls -la
-          cat generated_backend_${{env.ENVIRONMENT}}.hcl
         working-directory: infra
       
 
