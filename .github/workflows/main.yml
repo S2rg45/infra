@@ -107,11 +107,11 @@ jobs:
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: var-backend
         run: |
-          cat <<EOF >  "generated_backend_${{env.ENVIRONMENT}}.tf"
-          bucket         = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}-tfstate"
-          key            = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}.tfstate"
-          region         = "${{env.AWS_REGION}}"
-          dynamodb_table = "${{env.DYNAMODB_TABLE}}-${{env.ENVIRONMENT}}-tflock"
+          cat <<EOF >  "generated_backend_${{env.ENVIRONMENT}}.tfbackend"
+            bucket         = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}-tfstate"
+            key            = "${{env.BUCKET_NAME}}-${{env.ENVIRONMENT}}.tfstate"
+            region         = "${{env.AWS_REGION}}"
+            dynamodb_table = "${{env.DYNAMODB_TABLE}}-${{env.ENVIRONMENT}}-tflock"
           EOF
         working-directory: infra
       
@@ -120,6 +120,14 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.2.5
+      
+      - name: Terraform Validate
+        if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
+        id: validate
+        run: |
+          ls -la
+          terraform validate -no-color
+        working-directory: infra
 
       - name: Terraform Init
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
