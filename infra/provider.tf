@@ -13,9 +13,9 @@ provider "aws" {
   }
 }
 
-terraform {
-   backend "local" {}
-}
+# terraform {
+#    backend "local" {}
+# }
 
 
 
