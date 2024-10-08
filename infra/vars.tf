@@ -1,20 +1,25 @@
-variable "glue_job_name" {
-  description = "glue_job_name"
+variable "glue_glue" {
+  description = "glue_glue"
   type = list(map(string))
   default = []
 }
 
-variable "table_catalog" {
+variable "glue_tables" {
   type = list(map(string))
   default = []
 }
 
-variable "database_name" {
+variable "glue_databases" {
   description = "Name of the catalog database"
   type        = list(map(string))
   default = []
 }
 
+variable "glue_crawlers" {
+  description = "name crawlers"
+  type        = list(map(string))
+  default = []
+}
 variable "aws_region" {
   description = "aws region"
   type        = string   

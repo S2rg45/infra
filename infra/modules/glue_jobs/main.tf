@@ -1,11 +1,11 @@
 resource "aws_cloudwatch_log_group" "glue_log_group" {
-  for_each = {for job in var.glue_job_name : job.glue_job_name => job}
+  for_each = {for job in var.glue_glue : job.glue_job_name => job}
   name              = "/aws-glue/jobs/${each.value.glue_job_name}"
   retention_in_days = each.value.log_retention_in_days
 }
 
 resource "aws_glue_job" "glue_job" {
-  for_each = {for job in var.glue_job_name : job.glue_job_name => job}
+  for_each = {for job in var.glue_glue : job.glue_job_name => job}
   name     = each.value.glue_job_name
   role_arn = each.value.role_arn
   max_capacity = each.value.max_capacity // 14
