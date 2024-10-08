@@ -125,8 +125,7 @@ jobs:
       - name: Terraform Init
         if: ${{ steps.get-variable-infra.outputs.status != 'empty' }}
         id: init
-        run: terraform init
-          -backend-config=generated_backend_${{env.ENVIRONMENT}}.tfvars
+        run: terraform init -backend-config=generated_backend_${{env.ENVIRONMENT}}.tfvars
         working-directory: infra
 
       - name: Terraform Validate
