@@ -44,6 +44,9 @@ jobs:
       approved: ${{ steps.approval.outputs.approved }}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Espera actualizacion de la BD
+        run: |
+          sleep 100
 
       - name: Checkout repository
         uses: actions/checkout@v4.1.7
