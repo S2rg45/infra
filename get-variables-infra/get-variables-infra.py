@@ -8,10 +8,11 @@ import pytz
 
 
 class DownloadFiles():
-    def __init__(self, dynamo_table, region_name, bucket_name, timezone ):
+    def __init__(self, dynamo_table, region_name, bucket_name, timezone,s3_key_upload ):
         self.dynamo_table = dynamo_table
         self.region_name = region_name
         self.bucket_name = bucket_name
+        self.s3_key_upload = s3_key_upload
         self.timezone = timezone
         self.current_time = datetime.datetime.now(self.timezone)
         self.glue_services = {'glue': [],'tables': [],'databases': [],'crawlers': []}
@@ -37,16 +38,17 @@ class DownloadFiles():
             variables=response.get('Items', [])
             # print("VARIABLES",variables)
             for item in variables:
-                if "UpdateDate" in item:
-                    # print('UpdateDate',item['UpdateDate'])
-                    # print('transform_date_five',transform_date_five)
-                    # print('transform_current_time',transform_current_time)
-                    if transform_date_five < item['UpdateDate'] < transform_current_time:
-                        self.path_s3_.append(item['S3_key'])
-                else:
-                    # print('CreationDate',item['CreationDate'])
-                    if transform_date_five < item['CreationDate'] < transform_current_time:
-                        self.path_s3_.append(item['S3_key'])
+                self.path_s3_.append(item['S3_key'])
+                # if "UpdateDate" in item:
+                #     # print('UpdateDate',item['UpdateDate'])
+                #     # print('transform_date_five',transform_date_five)
+                #     # print('transform_current_time',transform_current_time)
+                #     if transform_date_five < item['UpdateDate'] < transform_current_time:
+                #         self.path_s3_.append(item['S3_key'])
+                # else:
+                #     # print('CreationDate',item['CreationDate'])
+                #     if transform_date_five < item['CreationDate'] < transform_current_time:
+                #         self.path_s3_.append(item['S3_key'])
             return self.path_s3_
         except Exception as e:
             print(f"Error al obtener registros de DynamoDB: {str(e)}")
@@ -95,11 +97,16 @@ class DownloadFiles():
                 output_content += "    },\n"
             output_content = output_content.rstrip(",\n") + "\n"   #Eliminar la última coma y nueva línea
             output_content += "]\n"
-
-        with open('config-infra.tfvars', 'w') as file:
+        local_file_path = 'config-infra.tfvars'
+        with open(local_file_path, 'w') as file:
             file.write(output_content)
+        self.upload_to_s3(local_file_path)
 
-    
+
+    def upload_to_s3(self, file_path):
+        self.s3_session.upload_files(file_path, self.bucket_name, self.s3_key_upload)
+
+
     def set_output(self, output_name, value):
         if "GITHUB_OUTPUT" in os.environ:
             with open(os.environ["GITHUB_OUTPUT"], "a") as variable:
@@ -112,10 +119,12 @@ if __name__ == "__main__":
     print("Proceso iniciado")
     print("--------------------------------")
     # Nombre del bucket de S3
-    bucket_name = 'process-etl-glue-prod'
+    # Nombre del bucket de S3
+    bucket_name = os.getenv("BUCKET_NAME_PROCESS") #'process-etl-glue-prod'
     # Nombre de la Tabla en DynamoDB
-    dynamodb_table = 'state-files-process'
-    region_name = 'us-east-2'
+    dynamodb_table = os.getenv("DYNAMO_TABLE_PROCESS") #'state-files-process'
+    region_name = os.getenv("AWS_REGION") #'us-east-2'
+    s3_key_upload = os.getenv("S3_KEY_UPLOAD")
     guatemala_timezone = pytz.timezone('America/Guatemala')
     download_files = DownloadFiles(dynamodb_table, 
                                    region_name, 
