@@ -104,7 +104,7 @@ class DownloadFiles():
 
 
     def upload_to_s3(self, file_path):
-        self.s3_session.upload_files(file_path, self.bucket_name, self.s3_key_upload)
+        self.s3_session.upload_file(file_path, self.bucket_name, self.s3_key_upload)
 
 
     def set_output(self, output_name, value):
