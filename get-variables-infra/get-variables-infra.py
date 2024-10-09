@@ -120,11 +120,11 @@ if __name__ == "__main__":
     print("--------------------------------")
     # Nombre del bucket de S3
     # Nombre del bucket de S3
-    bucket_name = os.getenv("BUCKET_NAME_PROCESS") #'process-etl-glue-prod'
+    bucket_name = 'process-etl-glue-prod'
     # Nombre de la Tabla en DynamoDB
-    dynamodb_table = os.getenv("DYNAMO_TABLE_PROCESS") #'state-files-process'
-    region_name = os.getenv("AWS_REGION") #'us-east-2'
-    s3_key_upload = os.getenv("S3_KEY_UPLOAD")
+    dynamodb_table = 'state-files-process'
+    region_name = 'us-east-2'
+    s3_key_upload = "state-tfvars/config-infra.tfvars"
     guatemala_timezone = pytz.timezone('America/Guatemala')
     download_files = DownloadFiles(dynamodb_table, 
                                    region_name, 
