@@ -129,7 +129,8 @@ if __name__ == "__main__":
     download_files = DownloadFiles(dynamodb_table, 
                                    region_name, 
                                    bucket_name, 
-                                   guatemala_timezone)    
+                                   guatemala_timezone,
+                                   s3_key_upload)    
     
     process_data=download_files.get_records_dynamo()
     if process_data:
